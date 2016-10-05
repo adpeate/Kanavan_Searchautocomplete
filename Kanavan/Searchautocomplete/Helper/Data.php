@@ -23,7 +23,7 @@ class Kanavan_Searchautocomplete_Helper_Data extends Mage_Core_Helper_Abstract
 		.ajaxsearch .preview .description {color:'.Mage::getStoreConfig('searchautocomplete/preview/pro_description_color').'}
 		.ajaxsearch .preview img {float:left; border:solid '.Mage::getStoreConfig('searchautocomplete/preview/image_border_width').'px '.Mage::getStoreConfig('searchautocomplete/preview/image_border_color').' }
 		.header .form-search .ajaxsearch li.selected {background-color:'.Mage::getStoreConfig('searchautocomplete/settings/hover_background').'}
-		.ajaxsearch li .form-search-wrapper { float: left; margin-left: 8px; }
+		.ajaxsearch li .form-search-wrapper { display: inline-block; padding-left: 8px; max-width: 83%; }
 		</style>';
 return $style;
  }
