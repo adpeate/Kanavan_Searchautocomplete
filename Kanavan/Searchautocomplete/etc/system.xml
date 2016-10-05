@@ -41,7 +41,16 @@
                             <show_in_website>1</show_in_website>
                       </max_char>
 -->
-						          <border_color translate="">
+
+					  <placeholder_text translate="">
+                            <label>Placeholder Text</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>4</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                      </placeholder_text>
+                      
+					  <border_color translate="">
                             <label>Border Color</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>4</sort_order>

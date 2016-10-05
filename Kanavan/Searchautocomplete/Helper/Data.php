@@ -26,4 +26,8 @@ class Kanavan_Searchautocomplete_Helper_Data extends Mage_Core_Helper_Abstract
 </style>';
 return $style;
  }
+ 
+ public function getPlaceholder(){
+	 return Mage::getStoreConfig('searchautocomplete/settings/placeholder_text');
+ }
 }

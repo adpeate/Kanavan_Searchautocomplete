@@ -12,6 +12,7 @@
 <action method="setTemplate"><template>searchautocomplete/blank.phtml</template></action>
         </reference>
         <reference name="content">
+			<action method="unsetChildren"/>
             <block type="searchautocomplete/suggest" name="searchautocomplete" template="searchautocomplete/suggest.phtml" />
         </reference>
     </searchautocomplete_suggest_result>
