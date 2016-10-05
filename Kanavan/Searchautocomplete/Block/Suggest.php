@@ -30,11 +30,53 @@ class Kanavan_Searchautocomplete_Block_Suggest extends Mage_Core_Block_Template
             Mage::helper('catalogsearch')->checkNotes();
 
 
-            $results=$query->getResultCollection();//->setPageSize(5);
+            //$results=$query->getResultCollection();//->setPageSize(5);
 
+		if(Mage::getStoreConfig('catalog/frontend/flat_catalog_product') == 1 || Mage::getStoreConfig('catalog/search/search/type') == Mage_CatalogSearch_Model_Fulltext::SEARCH_TYPE_FULLTEXT || Mage::getStoreConfig('catalog/search/search/type') == Mage_CatalogSearch_Model_Fulltext::SEARCH_TYPE_COMBINE ) {
+			$resHelper = Mage::getResourceHelper('core');
+			$likeOptions = array('position' => 'any');
+			
+			//$searchTerms = $this->filterSearchTerms($query->getQueryText());
+			$searchTerms = $query->getQueryText();
+			$searchTermVariants = $this->getVariantSearchTerms($query->getQueryText());
+			
+			$whereOps = array();
+			$whereOps[] = $resHelper->getCILike('search.data_index', $searchTerms, $likeOptions);
+			$whereOps[] = 'search.data_index LIKE "%'.$searchTerms.'%"';
+			
+			foreach($searchTermVariants as $stv){
+				//$whereOps[] = $resHelper->getCILike('search.data_index', $stv, $likeOptions);
+				$whereOps[] = 'search.data_index LIKE "%'.$stv.'%"';
+			}
+			
+			$whereSql = $this->joinWhereOr($whereOps);
+			
+			$catalogsearchTable = Mage::getSingleton('core/resource')->getTableName('catalogsearch/fulltext');
+			$results = Mage::getResourceModel('catalogsearch/search_collection');
+			$results->getSelect()
+				->join(array('search' => $catalogsearchTable), 'e.entity_id=search.product_id', array())
+				->where($whereSql)				
+				->where('search.store_id='.(int)Mage::app()->getStore()->getId());
+			if(Mage::helper('core')->isModuleEnabled('MageRage_Search')){
+				$whereOps = array();
+				$whereOps[] = $resHelper->getCILike('search.mageragesearch_data_index', $searchTerms, $likeOptions);
+				$whereOps[] = 'search.mageragesearch_data_index LIKE "%'.$searchTerms.'%"';
+				
+				foreach($searchTermVariants as $stv){
+					//$whereOps[] = $resHelper->getCILike('search.mageragesearch_data_index', $stv, $likeOptions);
+					$whereOps[] = 'search.mageragesearch_data_index LIKE "%'.$stv.'%"';
+				}
+				
+				$whereSql = $this->joinWhereOr($whereOps);
+				
+				$results->getSelect()
+					->where($whereSql);
+					
+			}
+		} else {
 
-
-//        $results=Mage::getResourceModel('catalogsearch/search_collection')->addSearchFilter(Mage::app()->getRequest()->getParam('q'));
+			$results=Mage::getResourceModel('catalogsearch/search_collection')->addSearchFilter(Mage::app()->getRequest()->getParam('q'));
+		}
 
         $results->addAttributeToFilter('visibility', array('neq' => 1));
 
@@ -56,6 +98,44 @@ class Kanavan_Searchautocomplete_Block_Suggest extends Mage_Core_Block_Template
 
         return $results;
     }
+    
+    private function getVariantSearchTerms($terms){
+		
+		$allChars = str_split($terms);	
+		$separatorKeys = array_keys($allChars, ' ');
+		$return = array();
+		
+		foreach($separatorKeys as $sk){
+			$tmpChars = $allChars;
+			unset($tmpChars[$sk]);
+			$return[] = implode('', $tmpChars);
+		}
+		
+		//also try the whole term with no spaces
+		$return[] = str_replace(' ', '', $terms);
+		
+		return $return;		
+	}
+	
+	private function filterSearchTerms($terms){
+		$tmp = explode(' ', $terms);
+		foreach($tmp as $k => $v){
+			if(strlen($v) <= 1){
+				unset($tmp[$k]);
+			}
+		}
+		return implode(' ', $tmp);
+	}
+    
+    private function joinWhereOr($terms){
+		$sql = "";
+		$sqlTmp = array();
+		foreach($terms as $t){
+			$sqlTmp[] = "({$t})";
+		}
+		return implode(' OR ', $sqlTmp);
+	}
+	
      public function enabledSuggest()     
      {
         return Mage::getStoreConfig('searchautocomplete/suggest/enable');
